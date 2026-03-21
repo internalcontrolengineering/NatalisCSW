@@ -1,0 +1,454 @@
+<!DOCTYPE html> 
+<html lang="es">
+
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Natalis — Cumpleaños</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+:root {
+  --overlay-z: 80;
+  --fullscreen-z: 90;
+}
+
+body { background: #0f172a; color: #fff; -webkit-font-smoothing:antialiased; }
+
+/* ✅ CAMBIO: ahora usamos GRID para controlar columnas (hasta 5) */
+#cardsContainer{
+  display:grid;
+  gap:1rem;
+  width:100%;
+  max-width:1600px; /* más ancho para que quepan 5 */
+  margin:auto;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+/* 2 columnas en pantallas medianas */
+@media (min-width: 640px){
+  #cardsContainer{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ✅ 5 columnas en pantallas grandes (ajusta el min-width si quieres) */
+@media (min-width: 1200px){
+  #cardsContainer{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+/* ✅ CAMBIO: quitamos el width fijo para que la tarjeta se adapte a la columna */
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 24px 18px;
+  width: 100%;          /* ✅ antes: 320px */
+  min-height: 140px;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(2,6,23,0.6);
+  position: relative;
+  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
+  overflow: hidden;
+}
+
+.card .icons { position: relative; display: flex; justify-content: flex-end; width: 100%; gap: 8px; margin-bottom: 12px; z-index: 5; }
+.card .motivo { font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 4px; word-break: break-word; }
+.card .counter { font-weight: 700; font-size: 1.2rem; color: rgba(0,0,0,0.85); background: rgba(255,255,255,0.9); padding: 8px 14px; border-radius: 10px; display: inline-block; margin-top: 4px; text-align: center; }
+
+.card:hover { transform: translateY(-6px) scale(1.02); }
+
+.card.fullscreen-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; width: 90%; max-width: 800px; min-height: 300px; z-index: var(--fullscreen-z); flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; }
+.card.fullscreen-modal:hover { transform: translate(-50%, -50%) !important; }
+.card.fullscreen-modal .motivo { font-size: 2.4rem; margin-bottom: 12px; }
+.card.fullscreen-modal .counter { font-size: 4rem; padding: 18px 26px; background: rgba(255,255,255,0.95); color: #000; text-align: center; }
+
+.icons { position: absolute; top: 2px; right: 2px; display: flex; gap: 2px; z-index: 5; }
+.icon-btn { width: 26px; height: 26px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); cursor: pointer; transition: background 0.12s, transform 0.1s; }
+.icon-btn:hover { background: rgba(0,0,0,0.35); transform: scale(1.05); }
+
+.focus-overlay, .fullscreen-overlay { position:fixed; inset:0; background:rgba(2,6,23,0.65); z-index: calc(var(--fullscreen-z)-1); display:flex; align-items:center; justify-content:center; }
+
+#fixedButtonsContainer { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: row; gap: 8px; z-index: 150; }
+.fixed-btn { background: #0ea5a4; color: white; border: none; padding: 6px 10px; border-radius: 10px; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
+.fixed-btn:hover { opacity: 0.85; }
+
+/* Logo de Control Interno - Efecto hover */
+#logoControlInterno:hover { transform: scale(1.05); opacity: 1; }
+
+/* Logo CSW - Efecto hover */
+#logo:hover { transform: scale(1.05); }
+</style>
+</head>
+
+<body class="min-h-screen py-8 px-4">
+
+<div class="max-w-6xl mx-auto flex flex-col items-center gap-4">
+    <!-- Logo de Control Interno arriba - AZUL QUE COMBINA CON EL DISEÑO -->
+    <div style="margin-bottom: 5px;">
+        <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20Control%20Interno.png" 
+             alt="Logo Control Interno" 
+             id="logoControlInterno"
+             style="max-width: 100px; height: auto; filter: brightness(0) saturate(100%) invert(77%) sepia(25%) saturate(450%) hue-rotate(350deg) brightness(92%) contrast(86%); transition: all 0.3s ease;">
+    </div>
+    
+    <h1 class="text-3xl font-bold text-white">🎂 Natalis</h1>
+
+    <div id="logoContainer">
+        <img src="https://raw.githubusercontent.com/jpojedawork-ai/Desarrollos/main/Logo%20CSW.png" alt="Logo Scriptum" id="logo" class="w-32 mt-2">
+    </div>
+
+  <div class="w-full max-w-md bg-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+    <div class="flex gap-2">
+      <input id="fecha" type="date" class="flex-1 rounded px-3 py-2 bg-slate-700 text-white">
+    </div>
+    <textarea id="motivo" rows="2" placeholder="Nombre del cumpleañero..." class="w-full rounded px-3 py-2 bg-slate-700 text-white"></textarea>
+    <div class="flex gap-2">
+      <button id="agregar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 rounded py-2 font-semibold">Agregar</button>
+      <button id="borrarTodo" class="bg-red-600 hover:bg-red-700 rounded px-3 py-2">Borrar todo</button>
+    </div>
+  </div>
+
+  <div id="cardsContainer" class="mt-6"></div>
+</div>
+
+<div id="editModal" class="fixed inset-0 hidden items-center justify-center z-40">
+  <div class="bg-slate-900 p-6 rounded-2xl shadow-xl w-96">
+    <h3 class="text-lg font-bold mb-3">Editar cumpleaños</h3>
+    <input id="editFecha" type="date" class="w-full rounded px-3 py-2 mb-2 bg-slate-800 text-white">
+    <textarea id="editMotivo" rows="3" class="w-full rounded px-3 py-2 mb-3 bg-slate-800 text-white"></textarea>
+    <div class="flex gap-2 justify-end">
+      <button id="cancelarEd" class="bg-gray-600 px-3 py-2 rounded">Cancelar</button>
+      <button id="guardarEd" class="bg-emerald-500 px-3 py-2 rounded">Guardar</button>
+      <button id="eliminarEd" class="bg-red-600 px-3 py-2 rounded">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<div id="fixedButtonsContainer">
+  <button id="fullscreenBtn" class="fixed-btn" title="Pantalla completa">Pantalla completa</button>
+  <button id="importJson" class="fixed-btn">Importar JSON</button>
+  <button id="exportJson" class="fixed-btn">Exportar JSON</button>
+  <button id="fixedToggleForm" class="fixed-btn">Ocultar</button>
+  <button id="whatsappBtn" class="fixed-btn bg-green-500 hover:bg-green-600">Enviar WhatsApp</button>
+</div>
+
+<script>
+let items = JSON.parse(localStorage.getItem('natalis_items')||'[]');
+const cardsContainer=document.getElementById('cardsContainer');
+const agregarBtn=document.getElementById('agregar');
+const fechaInput=document.getElementById('fecha');
+const motivoInput=document.getElementById('motivo');
+const borrarTodoBtn=document.getElementById('borrarTodo');
+const editModal=document.getElementById('editModal');
+const editFecha=document.getElementById('editFecha');
+const editMotivo=document.getElementById('editMotivo');
+const guardarEd=document.getElementById('guardarEd');
+const cancelarEd=document.getElementById('cancelarEd');
+const eliminarEd=document.getElementById('eliminarEd');
+const fixedToggleBtn=document.getElementById('fixedToggleForm');
+const exportJsonBtn=document.getElementById('exportJson');
+const importJsonBtn=document.getElementById('importJson');
+
+let intervals={};
+let editingIndex=null;
+const palette=[
+  'linear-gradient(135deg,#ec4899,#f472b6)',
+  'linear-gradient(135deg,#10b981,#34d399)',
+  'linear-gradient(135deg,#3b82f6,#60a5fa)',
+  'linear-gradient(135deg,#f59e0b,#fbbf24)',
+  'linear-gradient(135deg,#8b5cf6,#a78bfa)',
+  'linear-gradient(135deg,#ef4444,#f87171)'
+];
+
+function save(){ localStorage.setItem('natalis_items',JSON.stringify(items)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function clearAllIntervals(){ Object.values(intervals).forEach(i=>clearInterval(i)); intervals={}; }
+
+function render(){
+  clearAllIntervals();
+  cardsContainer.innerHTML='';
+  items.forEach((it,index)=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.background=palette[index%palette.length];
+    card.dataset.index=index;
+    card.dataset.id=it.id;
+
+    const icons=document.createElement('div');
+    icons.className='icons';
+    icons.innerHTML=`<div class="icon-btn" title="Maximizar" data-action="max">${svgMax()}</div>`;
+    card.appendChild(icons);
+
+    const motivo=document.createElement('div');
+    motivo.className='motivo';
+    motivo.innerText=it.motive;
+    card.appendChild(motivo);
+
+    const fechaDiv=document.createElement('div');
+    fechaDiv.className='text-sm text-white/80 mb-2';
+    const [y,m,d]=it.date.split('-');
+    fechaDiv.innerText=`${d}/${m}/${y}`;
+    card.appendChild(fechaDiv);
+
+    const counter=document.createElement('div');
+    counter.className='counter mt-1';
+    counter.id=`counter-${it.id}`;
+    card.appendChild(counter);
+
+    card.addEventListener('dblclick',()=> openEdit(items.indexOf(it)));
+
+    icons.addEventListener('click',(e)=>{
+      e.stopPropagation();
+      const btn=e.target.closest('[data-action]');
+      if(!btn) return;
+      const action=btn.dataset.action;
+      if(action==='max') toggleFullscreen(card);
+    });
+
+    cardsContainer.appendChild(card);
+    intervals[it.id]=setInterval(()=> updateTimeFor(it,counter,it.date),1000);
+    updateTimeFor(it,counter,it.date);
+  });
+}
+
+function updateTimeFor(item,counterEl,dateStr){
+  const now = new Date();
+  let [y,m,d] = dateStr.split('-').map(Number);
+  const target = new Date(now.getFullYear(), m-1, d, 0,0,0);
+  if(target < now) target.setFullYear(now.getFullYear()+1);
+  const diff = target - now;
+  const days = Math.floor(diff / (1000*60*60*24));
+  const hrs = Math.floor((diff % (1000*60*60*24))/(1000*60*60));
+  const mins = Math.floor((diff % (1000*60*60))/(1000*60));
+  const secs = Math.floor((diff % (1000*60))/1000);
+  counterEl.textContent=`${days}d ${hrs}h ${mins}min ${secs}s`;
+}
+
+function openEdit(index){
+  editingIndex=index;
+  const it=items[index];
+  editFecha.value=it.date;
+  editMotivo.value=it.motive;
+  editModal.classList.remove('hidden'); editModal.style.display='flex';
+}
+
+guardarEd.addEventListener('click',()=>{
+  if(editingIndex===null) return;
+  const it=items[editingIndex];
+  it.date=editFecha.value;
+  it.motive=editMotivo.value.trim();
+  save();
+  editModal.classList.add('hidden'); editModal.style.display='none';
+  editingIndex=null;
+  render();
+});
+cancelarEd.addEventListener('click',()=>{ editingIndex=null; editModal.classList.add('hidden'); editModal.style.display='none'; });
+eliminarEd.addEventListener('click',()=>{
+  if(editingIndex===null) return;
+  if(!confirm('¿Eliminar este cumpleaños?')) return;
+  items.splice(editingIndex,1); save();
+  editingIndex=null; editModal.classList.add('hidden'); editModal.style.display='none';
+  render();
+});
+
+function toggleFullscreen(cardEl){
+  const isFull=cardEl.classList.contains('fullscreen-modal');
+  if(isFull){
+    cardEl.classList.remove('fullscreen-modal');
+    const overlay=document.querySelector('.fullscreen-overlay');
+    if(overlay) overlay.remove();
+    document.querySelector('#cardsContainer').appendChild(cardEl);
+  } else {
+    cardEl.classList.add('fullscreen-modal');
+    const overlay=document.createElement('div');
+    overlay.className='fullscreen-overlay';
+    overlay.addEventListener('click',()=>toggleFullscreen(cardEl));
+    document.body.appendChild(overlay);
+    document.body.appendChild(cardEl);
+  }
+}
+
+fixedToggleBtn.addEventListener('click',()=>{ 
+  const form=document.querySelector('.max-w-md'); 
+  const visible=form.style.display!=='none';
+  form.style.display=visible?'none':'flex';
+  fixedToggleBtn.textContent=visible?'Mostrar':'Ocultar';
+});
+
+agregarBtn.addEventListener('click',()=>{
+  const dateVal=fechaInput.value; const motVal=motivoInput.value.trim();
+  if(!dateVal||!motVal) return alert('Completa fecha y nombre');
+  items.push({id:uid(),date:dateVal,motive:motVal});
+  save(); fechaInput.value=''; motivoInput.value='';
+  render();
+});
+
+borrarTodoBtn.addEventListener('click',()=>{ if(!confirm('Borrar todos los cumpleaños?')) return; items=[]; save(); render(); });
+
+exportJsonBtn.addEventListener('click', () => {
+  const dataStr = JSON.stringify(items, null, 2);
+  const blob = new Blob([dataStr], { type: 'application/json' });
+
+  // Opción moderna con showSaveFilePicker (Chrome, Edge, Opera ≥86, Safari ≥17.2 parcial)
+  if ('showSaveFilePicker' in window) {
+    try {
+      window.showSaveFilePicker({
+        suggestedName: `Natalis_respaldo_${new Date().toISOString().split('T')[0]}.json`,
+        types: [{
+          description: 'Archivo JSON',
+          accept: { 'application/json': ['.json'] },
+        }],
+      })
+      .then(handle => handle.createWritable())
+      .then(writable => {
+        return writable.write(blob)
+          .then(() => writable.close());
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          fallbackDownload(blob);
+        }
+      });
+    } catch (err) {
+      console.warn('showSaveFilePicker falló, usando método clásico', err);
+      fallbackDownload(blob);
+    }
+  } else {
+    // Método clásico (funciona en todos los navegadores)
+    fallbackDownload(blob);
+  }
+
+  function fallbackDownload(blob) {
+    const link = document.createElement('a');
+    const fecha = new Date().toISOString().split('T')[0];
+    link.download = `Natalis_respaldo_${fecha}.json`;
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    // Opcional: limpiar después de un tiempo
+    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+  }
+});
+
+importJsonBtn.addEventListener('click',()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const arr=JSON.parse(reader.result);
+        if(Array.isArray(arr)){
+          items=arr.map(it=>it);
+          save(); render();
+        } else alert('JSON inválido');
+      } catch(err){ alert('Error leyendo JSON'); }
+    };
+    reader.readAsText(file);
+  };
+  inp.click();
+});
+
+// Enviar información por WhatsApp con días restantes
+const whatsappBtn = document.getElementById('whatsappBtn');
+whatsappBtn.addEventListener('click', () => {
+  if (items.length === 0) {
+    alert('No hay cumpleaños registrados para enviar.');
+    return;
+  }
+
+  let mensaje = '🎉 *Próximos Cumpleaños — Natalis* 🎂%0A%0A';
+  const now = new Date();
+
+  items.forEach((it, i) => {
+    const [y, m, d] = it.date.split('-').map(Number);
+    const target = new Date(now.getFullYear(), m - 1, d, 0, 0, 0);
+    if (target < now) target.setFullYear(now.getFullYear() + 1);
+
+    const diff = target - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    const [year, month, day] = it.date.split('-');
+    const fechaTexto = `${day}/${month}/${year}`;
+    const restante =
+      days > 0
+        ? `${days}d ${hrs}h ${mins}min`
+        : hrs > 0
+        ? `${hrs}h ${mins}min`
+        : `${mins}min`;
+
+    mensaje += `${i + 1}. *${it.motive}* — ${fechaTexto}  _(faltan ${restante})_%0A`;
+  });
+
+  mensaje += '%0A✨ Enviado desde Natalis';
+  const url = `https://wa.me/?text=${mensaje}`;
+  window.open(url, '_blank');
+});
+
+render();
+
+function svgMax(){
+  return '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zm0 10h6v6h-6v-6zm-10 0h6v6H4v-6z"/></svg>';
+}
+
+/* =========================================================
+   FULLSCREEN (Pantalla completa real) - aislado, sin romper nada
+   ========================================================= */
+(function initFullscreenToggle() {
+  const btn = document.getElementById('fullscreenBtn');
+  if (!btn) return;
+
+  const iconEnter = '⛶';
+  const iconExit = '🗗';
+
+  function isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement);
+  }
+
+  async function enterFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) return el.requestFullscreen();
+    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+  }
+
+  async function exitFullscreen() {
+    if (document.exitFullscreen) return document.exitFullscreen();
+    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+  }
+
+  function updateButton() {
+    if (isFullscreen()) {
+      btn.textContent = `${iconExit} Salir`;
+      btn.title = 'Salir de pantalla completa';
+    } else {
+      btn.textContent = `${iconEnter} Pantalla completa`;
+      btn.title = 'Pantalla completa';
+    }
+  }
+
+  btn.addEventListener('click', async () => {
+    try {
+      if (isFullscreen()) await exitFullscreen();
+      else await enterFullscreen();
+      updateButton();
+    } catch (e) {
+      console.error('Fullscreen error:', e);
+      alert('El navegador bloqueó pantalla completa (puede pasar en iOS Safari).');
+    }
+  });
+
+  document.addEventListener('fullscreenchange', updateButton);
+  document.addEventListener('webkitfullscreenchange', updateButton);
+
+  updateButton();
+})();
+</script>
+
+<div style="text-align:center; font-size:0.85rem; color:#555; position:fixed; bottom:10px; width:100%;">By Pablo Ojeda</div>
+
+</body>
+</html>
