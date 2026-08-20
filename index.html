@@ -286,6 +286,9 @@ agregarBtn.addEventListener('click',()=>{
 
 borrarTodoBtn.addEventListener('click',()=>{ if(!confirm('Borrar todos los cumpleaños?')) return; items=[]; save(); render(); });
 
+// ====================================================================
+//  EXPORTAR JSON - Mejorado para móviles
+// ====================================================================
 exportJsonBtn.addEventListener('click', () => {
   const dataStr = JSON.stringify(items, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
@@ -325,29 +328,57 @@ exportJsonBtn.addEventListener('click', () => {
     const fecha = new Date().toISOString().split('T')[0];
     link.download = `Natalis_respaldo_${fecha}.json`;
     link.href = URL.createObjectURL(blob);
+    link.style.display = 'none';
+    document.body.appendChild(link);   // 🔹 Añadimos al DOM para que funcione en móviles
     link.click();
-    // Opcional: limpiar después de un tiempo
-    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+
+    // Limpieza después de la descarga
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }, 4000);
   }
 });
 
-importJsonBtn.addEventListener('click',()=>{
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
-  inp.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=()=>{
-      try{
-        const arr=JSON.parse(reader.result);
-        if(Array.isArray(arr)){
-          items=arr.map(it=>it);
-          save(); render();
-        } else alert('JSON inválido');
-      } catch(err){ alert('Error leyendo JSON'); }
+// ====================================================================
+//  IMPORTAR JSON - Mejorado para móviles
+// ====================================================================
+importJsonBtn.addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = '.json';
+  inp.style.display = 'none';
+  document.body.appendChild(inp);   // 🔹 Añadimos al DOM
+
+  inp.onchange = function (e) {
+    const file = e.target.files[0];
+    if (!file) {
+      document.body.removeChild(inp);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const arr = JSON.parse(reader.result);
+        if (Array.isArray(arr)) {
+          items = arr.map(it => it);
+          save();
+          render();
+        } else {
+          alert('JSON inválido');
+        }
+      } catch (err) {
+        alert('Error leyendo el JSON');
+      }
+      document.body.removeChild(inp);
+    };
+    reader.onerror = () => {
+      alert('Error al leer el archivo');
+      document.body.removeChild(inp);
     };
     reader.readAsText(file);
   };
+
   inp.click();
 });
 
@@ -460,7 +491,7 @@ function svgMax(){
         </div>
         <div style="width: 1px; height: 24px; background-color: #cbd5e1;"></div>
         <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: center;">
-            <span style="font-size: 0.5rem; color: #0A2540;">Natalis</span>
+            <span style="font-size: 0.5rem; color: #0A2540;">Visum</span>
             <span style="font-size: 0.4rem; color: #94a3b8; font-weight: 500;">V1.0 | Mayo 2026</span>
         </div>
     </div>
