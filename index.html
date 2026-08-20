@@ -1,470 +1,830 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="es">
 
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Natalis — Cumpleaños</title>
-<script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Natalis — Cumpleaños</title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
 
-<style>
-:root {
-  --overlay-z: 80;
-  --fullscreen-z: 90;
-}
+  <style>
+    /* =========================================================
+           GLASMORFISMO HIPERREALISTA
+           ========================================================= */
+    :root {
+      --overlay-z: 80;
+      --fullscreen-z: 90;
+    }
 
-body { background: #0f172a; color: #fff; -webkit-font-smoothing:antialiased; }
+    /* Fondo con degradado y patrones de luz */
+    body {
+      background: #0a0e1a;
+      background-image:
+        radial-gradient(circle at 10% 30%, rgba(59, 130, 246, 0.20) 0%, transparent 50%),
+        radial-gradient(circle at 90% 70%, rgba(139, 92, 246, 0.20) 0%, transparent 50%),
+        linear-gradient(135deg, #0a0e1a 0%, #1a1a2e 100%);
+      min-height: 100vh;
+      color: #fff;
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
 
-/* ✅ CAMBIO: ahora usamos GRID para controlar columnas (hasta 5) */
-#cardsContainer{
-  display:grid;
-  gap:1rem;
-  width:100%;
-  max-width:1600px; /* más ancho para que quepan 5 */
-  margin:auto;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-}
+    /* Capa de luz difusa (efecto de ambiente) */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 80% 50%, rgba(255, 255, 255, 0.04) 0%, transparent 40%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-/* 2 columnas en pantallas medianas */
-@media (min-width: 640px){
-  #cardsContainer{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+    /* Contenedor principal sobre el fondo */
+    .max-w-6xl {
+      position: relative;
+      z-index: 1;
+    }
 
-/* ✅ 5 columnas en pantallas grandes (ajusta el min-width si quieres) */
-@media (min-width: 1200px){
-  #cardsContainer{ grid-template-columns: repeat(5, minmax(0, 1fr)); }
-}
+    /* ===== TARJETAS ===== */
+    #cardsContainer {
+      display: grid;
+      gap: 1.2rem;
+      width: 100%;
+      max-width: 1600px;
+      margin: auto;
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+      padding: 0 10px;
+    }
 
-/* ✅ CAMBIO: quitamos el width fijo para que la tarjeta se adapte a la columna */
-.card {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 24px 18px;
-  width: 100%;          /* ✅ antes: 320px */
-  min-height: 140px;
-  border-radius: 14px;
-  box-shadow: 0 6px 20px rgba(2,6,23,0.6);
-  position: relative;
-  transition: transform .28s cubic-bezier(.2,.9,.2,1), box-shadow .28s;
-  overflow: hidden;
-}
+    @media (min-width: 640px) {
+      #cardsContainer {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
 
-.card .icons { position: relative; display: flex; justify-content: flex-end; width: 100%; gap: 8px; margin-bottom: 12px; z-index: 5; }
-.card .motivo { font-weight: 600; color: rgba(255,255,255,0.95); margin-bottom: 4px; word-break: break-word; }
-.card .counter { font-weight: 700; font-size: 1.2rem; color: rgba(0,0,0,0.85); background: rgba(255,255,255,0.9); padding: 8px 14px; border-radius: 10px; display: inline-block; margin-top: 4px; text-align: center; }
+    @media (min-width: 1200px) {
+      #cardsContainer {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+    }
 
-.card:hover { transform: translateY(-6px) scale(1.02); }
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px 18px;
+      width: 100%;
+      min-height: 140px;
+      border-radius: 20px;
+      /* Fondo base transparente + efecto vidrio */
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+    }
 
-.card.fullscreen-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) !important; width: 90%; max-width: 800px; min-height: 300px; z-index: var(--fullscreen-z); flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; }
-.card.fullscreen-modal:hover { transform: translate(-50%, -50%) !important; }
-.card.fullscreen-modal .motivo { font-size: 2.4rem; margin-bottom: 12px; }
-.card.fullscreen-modal .counter { font-size: 4rem; padding: 18px 26px; background: rgba(255,255,255,0.95); color: #000; text-align: center; }
+    /* Reflejo superior (brillo de vidrio) */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
+      pointer-events: none;
+      border-radius: 20px 20px 0 0;
+    }
 
-.icons { position: absolute; top: 2px; right: 2px; display: flex; gap: 2px; z-index: 5; }
-.icon-btn { width: 26px; height: 26px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.25); cursor: pointer; transition: background 0.12s, transform 0.1s; }
-.icon-btn:hover { background: rgba(0,0,0,0.35); transform: scale(1.05); }
+    .card:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
 
-.focus-overlay, .fullscreen-overlay { position:fixed; inset:0; background:rgba(2,6,23,0.65); z-index: calc(var(--fullscreen-z)-1); display:flex; align-items:center; justify-content:center; }
+    /* Tarjeta en fullscreen */
+    .card.fullscreen-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) !important;
+      width: 90%;
+      max-width: 800px;
+      min-height: 300px;
+      z-index: var(--fullscreen-z);
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(20px) saturate(200%);
+      -webkit-backdrop-filter: blur(20px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
 
-#fixedButtonsContainer { position: fixed; right: 20px; bottom: 20px; display: flex; flex-direction: row; gap: 8px; z-index: 150; }
-.fixed-btn { background: #0ea5a4; color: white; border: none; padding: 6px 10px; border-radius: 10px; font-weight: 600; font-size: 0.8rem; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,0.3); }
-.fixed-btn:hover { opacity: 0.85; }
+    .card.fullscreen-modal::before {
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 100%);
+    }
 
-/* Logo de Control Interno - Efecto hover */
-#logoControlInterno:hover { transform: scale(1.05); opacity: 1; }
+    .card.fullscreen-modal .motivo {
+      font-size: 2.4rem;
+      margin-bottom: 12px;
+    }
 
-/* Logo CSW - Efecto hover */
-#logo:hover { transform: scale(1.05); }
-</style>
+    .card.fullscreen-modal .counter {
+      font-size: 4rem;
+      padding: 18px 26px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 16px;
+      color: #fff;
+      text-align: center;
+    }
+
+    /* Textos dentro de la tarjeta */
+    .card .motivo {
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.95);
+      margin-bottom: 4px;
+      word-break: break-word;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .card .counter {
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+      background: rgba(255, 255, 255, 0.10);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: inline-block;
+      margin-top: 4px;
+      text-align: center;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .card .text-sm {
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ===== ICONOS (maximizar) ===== */
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .icon-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.1);
+    }
+
+    .icon-btn svg {
+      stroke: currentColor;
+    }
+
+    /* ===== FORMULARIO ===== */
+    .bg-slate-800 {
+      background: rgba(255, 255, 255, 0.05) !important;
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .bg-slate-700 {
+      background: rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff !important;
+    }
+
+    .bg-slate-700:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    .bg-emerald-500 {
+      background: rgba(16, 185, 129, 0.50) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: background 0.2s;
+    }
+
+    .bg-emerald-500:hover {
+      background: rgba(16, 185, 129, 0.70) !important;
+    }
+
+    .bg-red-600 {
+      background: rgba(239, 68, 68, 0.50) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: background 0.2s;
+    }
+
+    .bg-red-600:hover {
+      background: rgba(239, 68, 68, 0.70) !important;
+    }
+
+    /* ===== BOTONES FIJOS ===== */
+    .fixed-btn {
+      background: rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s;
+    }
+
+    .fixed-btn:hover {
+      background: rgba(255, 255, 255, 0.18) !important;
+      transform: scale(1.05);
+    }
+
+    .fixed-btn.bg-green-500 {
+      background: rgba(34, 197, 94, 0.45) !important;
+    }
+
+    .fixed-btn.bg-green-500:hover {
+      background: rgba(34, 197, 94, 0.65) !important;
+    }
+
+    /* ===== MODAL DE EDICIÓN ===== */
+    #editModal .bg-slate-900 {
+      background: rgba(0, 0, 0, 0.5) !important;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    #editModal .bg-slate-800 {
+      background: rgba(255, 255, 255, 0.08) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    #editModal .bg-gray-600 {
+      background: rgba(255, 255, 255, 0.10) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    #editModal .bg-emerald-500 {
+      background: rgba(16, 185, 129, 0.50) !important;
+    }
+
+    #editModal .bg-red-600 {
+      background: rgba(239, 68, 68, 0.50) !important;
+    }
+
+    /* ===== OVERLAY ===== */
+    .fullscreen-overlay {
+      background: rgba(0, 0, 0, 0.5) !important;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* ===== LOGOS ===== */
+    #logoControlInterno,
+    #logo {
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+      transition: transform 0.2s;
+    }
+
+    #logoControlInterno:hover,
+    #logo:hover {
+      transform: scale(1.05);
+    }
+
+    /* ===== FOOTER ===== */
+    #footer {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      padding: 6px 16px;
+      border-radius: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    #footer img {
+      height: 22px;
+      width: auto;
+      object-fit: contain;
+      opacity: 0.5;
+    }
+
+    #footer .separator {
+      width: 1px;
+      height: 24px;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    #footer .group {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    #footer .group .title {
+      font-size: 0.55rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    #footer .group .sub {
+      font-size: 0.4rem;
+      color: rgba(255, 255, 255, 0.3);
+      font-weight: 500;
+    }
+
+    /* Ajuste para que los botones fijos no se superpongan con el footer */
+    #fixedButtonsContainer {
+      bottom: 80px;
+    }
+
+    /* ===== TÍTULO ===== */
+    h1.text-3xl {
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    /* ===== INPUTS DE TEXTO ===== */
+    textarea,
+    input[type="date"] {
+      color: #fff !important;
+    }
+
+    textarea::placeholder,
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  </style>
 </head>
 
 <body class="min-h-screen py-8 px-4">
 
-<div class="max-w-6xl mx-auto flex flex-col items-center gap-4">
-    <!-- Logo de Control Interno arriba - color original -->
-<div style="margin-bottom: 5px;">
-    <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/LogoCI-BC.png"
-         alt="Logo Control Interno"
-         id="logoControlInterno"
-         style="max-width: 100px; height: auto; filter: none !important; transition: all 0.3s ease;">
-</div>
-    
+  <div class="max-w-6xl mx-auto flex flex-col items-center gap-4">
+    <!-- Logo Control Interno -->
+    <div style="margin-bottom: 5px;">
+      <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/LogoCI-BC.png"
+      alt="Logo Control Interno"
+      id="logoControlInterno"
+      style="max-width: 100px; height: auto; filter: none !important; transition: all 0.3s ease;">
+    </div>
+
     <h1 class="text-3xl font-bold text-white">🎂 Natalis</h1>
 
     <div id="logoContainer">
-        <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/Logo%20CSW.png" alt="Logo CSW" id="logo" class="w-28 mt-2">
+      <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/Logo%20CSW.png" alt="Logo CSW" id="logo" class="w-28 mt-2">
     </div>
 
-  <div class="w-full max-w-md bg-slate-800 rounded-2xl p-4 flex flex-col gap-3">
-    <div class="flex gap-2">
-      <input id="fecha" type="date" class="flex-1 rounded px-3 py-2 bg-slate-700 text-white">
+    <!-- Formulario con estilo vidrio -->
+    <div class="w-full max-w-md bg-slate-800 rounded-2xl p-4 flex flex-col gap-3">
+      <div class="flex gap-2">
+        <input id="fecha" type="date" class="flex-1 rounded px-3 py-2 bg-slate-700 text-white">
+      </div>
+      <textarea id="motivo" rows="2" placeholder="Nombre del cumpleañero..." class="w-full rounded px-3 py-2 bg-slate-700 text-white"></textarea>
+      <div class="flex gap-2">
+        <button id="agregar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 rounded py-2 font-semibold">Agregar</button>
+        <button id="borrarTodo" class="bg-red-600 hover:bg-red-700 rounded px-3 py-2">Borrar todo</button>
+      </div>
     </div>
-    <textarea id="motivo" rows="2" placeholder="Nombre del cumpleañero..." class="w-full rounded px-3 py-2 bg-slate-700 text-white"></textarea>
-    <div class="flex gap-2">
-      <button id="agregar" class="flex-1 bg-emerald-500 hover:bg-emerald-600 rounded py-2 font-semibold">Agregar</button>
-      <button id="borrarTodo" class="bg-red-600 hover:bg-red-700 rounded px-3 py-2">Borrar todo</button>
+
+    <!-- Contenedor de tarjetas -->
+    <div id="cardsContainer" class="mt-6"></div>
+  </div>
+
+  <!-- Modal de edición -->
+  <div id="editModal" class="fixed inset-0 hidden items-center justify-center z-40">
+    <div class="bg-slate-900 p-6 rounded-2xl shadow-xl w-96">
+      <h3 class="text-lg font-bold mb-3">Editar cumpleaños</h3>
+      <input id="editFecha" type="date" class="w-full rounded px-3 py-2 mb-2 bg-slate-800 text-white">
+      <textarea id="editMotivo" rows="3" class="w-full rounded px-3 py-2 mb-3 bg-slate-800 text-white"></textarea>
+      <div class="flex gap-2 justify-end">
+        <button id="cancelarEd" class="bg-gray-600 px-3 py-2 rounded">Cancelar</button>
+        <button id="guardarEd" class="bg-emerald-500 px-3 py-2 rounded">Guardar</button>
+        <button id="eliminarEd" class="bg-red-600 px-3 py-2 rounded">Eliminar</button>
+      </div>
     </div>
   </div>
 
-  <div id="cardsContainer" class="mt-6"></div>
-</div>
+  <!-- Botones fijos -->
+  <div id="fixedButtonsContainer">
+    <button id="fullscreenBtn" class="fixed-btn" title="Pantalla completa">Pantalla completa</button>
+    <button id="importJson" class="fixed-btn">Importar JSON</button>
+    <button id="exportJson" class="fixed-btn">Exportar JSON</button>
+    <button id="fixedToggleForm" class="fixed-btn">Ocultar</button>
+    <button id="whatsappBtn" class="fixed-btn bg-green-500 hover:bg-green-600">Enviar WhatsApp</button>
+  </div>
 
-<div id="editModal" class="fixed inset-0 hidden items-center justify-center z-40">
-  <div class="bg-slate-900 p-6 rounded-2xl shadow-xl w-96">
-    <h3 class="text-lg font-bold mb-3">Editar cumpleaños</h3>
-    <input id="editFecha" type="date" class="w-full rounded px-3 py-2 mb-2 bg-slate-800 text-white">
-    <textarea id="editMotivo" rows="3" class="w-full rounded px-3 py-2 mb-3 bg-slate-800 text-white"></textarea>
-    <div class="flex gap-2 justify-end">
-      <button id="cancelarEd" class="bg-gray-600 px-3 py-2 rounded">Cancelar</button>
-      <button id="guardarEd" class="bg-emerald-500 px-3 py-2 rounded">Guardar</button>
-      <button id="eliminarEd" class="bg-red-600 px-3 py-2 rounded">Eliminar</button>
+  <!-- Footer rediseñado -->
+  <div id="footer">
+    <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/LogoCI-G.png"
+    alt="Control Interno">
+    <div class="separator"></div>
+    <div class="group">
+      <span class="title">Control Interno</span>
+      <span class="sub">Ingeniería de Control</span>
+    </div>
+    <div class="separator"></div>
+    <div class="group">
+      <span class="title">Visum</span>
+      <span class="sub">V1.0 | Mayo 2026</span>
     </div>
   </div>
-</div>
 
-<div id="fixedButtonsContainer">
-  <button id="fullscreenBtn" class="fixed-btn" title="Pantalla completa">Pantalla completa</button>
-  <button id="importJson" class="fixed-btn">Importar JSON</button>
-  <button id="exportJson" class="fixed-btn">Exportar JSON</button>
-  <button id="fixedToggleForm" class="fixed-btn">Ocultar</button>
-  <button id="whatsappBtn" class="fixed-btn bg-green-500 hover:bg-green-600">Enviar WhatsApp</button>
-</div>
+  <script>
+    // =========================================================
+    //  LÓGICA PRINCIPAL (sin cambios funcionales, solo estética)
+    // =========================================================
 
-<script>
-let items = JSON.parse(localStorage.getItem('natalis_items')||'[]');
-const cardsContainer=document.getElementById('cardsContainer');
-const agregarBtn=document.getElementById('agregar');
-const fechaInput=document.getElementById('fecha');
-const motivoInput=document.getElementById('motivo');
-const borrarTodoBtn=document.getElementById('borrarTodo');
-const editModal=document.getElementById('editModal');
-const editFecha=document.getElementById('editFecha');
-const editMotivo=document.getElementById('editMotivo');
-const guardarEd=document.getElementById('guardarEd');
-const cancelarEd=document.getElementById('cancelarEd');
-const eliminarEd=document.getElementById('eliminarEd');
-const fixedToggleBtn=document.getElementById('fixedToggleForm');
-const exportJsonBtn=document.getElementById('exportJson');
-const importJsonBtn=document.getElementById('importJson');
+    let items = JSON.parse(localStorage.getItem('natalis_items') || '[]');
+    const cardsContainer = document.getElementById('cardsContainer');
+    const agregarBtn = document.getElementById('agregar');
+    const fechaInput = document.getElementById('fecha');
+    const motivoInput = document.getElementById('motivo');
+    const borrarTodoBtn = document.getElementById('borrarTodo');
+    const editModal = document.getElementById('editModal');
+    const editFecha = document.getElementById('editFecha');
+    const editMotivo = document.getElementById('editMotivo');
+    const guardarEd = document.getElementById('guardarEd');
+    const cancelarEd = document.getElementById('cancelarEd');
+    const eliminarEd = document.getElementById('eliminarEd');
+    const fixedToggleBtn = document.getElementById('fixedToggleForm');
+    const exportJsonBtn = document.getElementById('exportJson');
+    const importJsonBtn = document.getElementById('importJson');
 
-let intervals={};
-let editingIndex=null;
-const palette=[
-  'linear-gradient(135deg,#ec4899,#f472b6)',
-  'linear-gradient(135deg,#10b981,#34d399)',
-  'linear-gradient(135deg,#3b82f6,#60a5fa)',
-  'linear-gradient(135deg,#f59e0b,#fbbf24)',
-  'linear-gradient(135deg,#8b5cf6,#a78bfa)',
-  'linear-gradient(135deg,#ef4444,#f87171)'
-];
+    let intervals = {};
+    let editingIndex = null;
 
-function save(){ localStorage.setItem('natalis_items',JSON.stringify(items)); }
-function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-function clearAllIntervals(){ Object.values(intervals).forEach(i=>clearInterval(i)); intervals={}; }
+    // PALETA de colores pastel con transparencia (para vidrio coloreado)
+    const palette = [
+      'rgba(236, 72, 153, 0.25)', // rosa
+      'rgba(16, 185, 129, 0.25)', // verde
+      'rgba(59, 130, 246, 0.25)', // azul
+      'rgba(245, 158, 11, 0.25)', // naranja
+      'rgba(139, 92, 246, 0.25)', // morado
+      'rgba(239, 68, 68, 0.25)' // rojo
+    ];
 
-function render(){
-  clearAllIntervals();
-  cardsContainer.innerHTML='';
-  items.forEach((it,index)=>{
-    const card=document.createElement('div');
-    card.className='card';
-    card.style.background=palette[index%palette.length];
-    card.dataset.index=index;
-    card.dataset.id=it.id;
+    function save() { localStorage.setItem('natalis_items', JSON.stringify(items)); }
 
-    const icons=document.createElement('div');
-    icons.className='icons';
-    icons.innerHTML=`<div class="icon-btn" title="Maximizar" data-action="max">${svgMax()}</div>`;
-    card.appendChild(icons);
+    function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
-    const motivo=document.createElement('div');
-    motivo.className='motivo';
-    motivo.innerText=it.motive;
-    card.appendChild(motivo);
+    function clearAllIntervals() { Object.values(intervals).forEach(i => clearInterval(i));
+      intervals = {}; }
 
-    const fechaDiv=document.createElement('div');
-    fechaDiv.className='text-sm text-white/80 mb-2';
-    const [y,m,d]=it.date.split('-');
-    fechaDiv.innerText=`${d}/${m}/${y}`;
-    card.appendChild(fechaDiv);
+    function render() {
+      clearAllIntervals();
+      cardsContainer.innerHTML = '';
+      items.forEach((it, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        // Asignamos color de fondo con transparencia (efecto vidrio)
+        card.style.backgroundColor = palette[index % palette.length];
+        card.dataset.index = index;
+        card.dataset.id = it.id;
 
-    const counter=document.createElement('div');
-    counter.className='counter mt-1';
-    counter.id=`counter-${it.id}`;
-    card.appendChild(counter);
+        const icons = document.createElement('div');
+        icons.className = 'icons';
+        icons.innerHTML = `<div class="icon-btn" title="Maximizar" data-action="max">${svgMax()}</div>`;
+        card.appendChild(icons);
 
-    card.addEventListener('dblclick',()=> openEdit(items.indexOf(it)));
+        const motivo = document.createElement('div');
+        motivo.className = 'motivo';
+        motivo.innerText = it.motive;
+        card.appendChild(motivo);
 
-    icons.addEventListener('click',(e)=>{
-      e.stopPropagation();
-      const btn=e.target.closest('[data-action]');
-      if(!btn) return;
-      const action=btn.dataset.action;
-      if(action==='max') toggleFullscreen(card);
+        const fechaDiv = document.createElement('div');
+        fechaDiv.className = 'text-sm text-white/80 mb-2';
+        const [y, m, d] = it.date.split('-');
+        fechaDiv.innerText = `${d}/${m}/${y}`;
+        card.appendChild(fechaDiv);
+
+        const counter = document.createElement('div');
+        counter.className = 'counter mt-1';
+        counter.id = `counter-${it.id}`;
+        card.appendChild(counter);
+
+        card.addEventListener('dblclick', () => openEdit(items.indexOf(it)));
+
+        icons.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const btn = e.target.closest('[data-action]');
+          if (!btn) return;
+          const action = btn.dataset.action;
+          if (action === 'max') toggleFullscreen(card);
+        });
+
+        cardsContainer.appendChild(card);
+        intervals[it.id] = setInterval(() => updateTimeFor(it, counter, it.date), 1000);
+        updateTimeFor(it, counter, it.date);
+      });
+    }
+
+    function updateTimeFor(item, counterEl, dateStr) {
+      const now = new Date();
+      let [y, m, d] = dateStr.split('-').map(Number);
+      const target = new Date(now.getFullYear(), m - 1, d, 0, 0, 0);
+      if (target < now) target.setFullYear(now.getFullYear() + 1);
+      const diff = target - now;
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+      counterEl.textContent = `${days}d ${hrs}h ${mins}min ${secs}s`;
+    }
+
+    function openEdit(index) {
+      editingIndex = index;
+      const it = items[index];
+      editFecha.value = it.date;
+      editMotivo.value = it.motive;
+      editModal.classList.remove('hidden');
+      editModal.style.display = 'flex';
+    }
+
+    guardarEd.addEventListener('click', () => {
+      if (editingIndex === null) return;
+      const it = items[editingIndex];
+      it.date = editFecha.value;
+      it.motive = editMotivo.value.trim();
+      save();
+      editModal.classList.add('hidden');
+      editModal.style.display = 'none';
+      editingIndex = null;
+      render();
     });
 
-    cardsContainer.appendChild(card);
-    intervals[it.id]=setInterval(()=> updateTimeFor(it,counter,it.date),1000);
-    updateTimeFor(it,counter,it.date);
-  });
-}
+    cancelarEd.addEventListener('click', () => {
+      editingIndex = null;
+      editModal.classList.add('hidden');
+      editModal.style.display = 'none';
+    });
 
-function updateTimeFor(item,counterEl,dateStr){
-  const now = new Date();
-  let [y,m,d] = dateStr.split('-').map(Number);
-  const target = new Date(now.getFullYear(), m-1, d, 0,0,0);
-  if(target < now) target.setFullYear(now.getFullYear()+1);
-  const diff = target - now;
-  const days = Math.floor(diff / (1000*60*60*24));
-  const hrs = Math.floor((diff % (1000*60*60*24))/(1000*60*60));
-  const mins = Math.floor((diff % (1000*60*60))/(1000*60));
-  const secs = Math.floor((diff % (1000*60))/1000);
-  counterEl.textContent=`${days}d ${hrs}h ${mins}min ${secs}s`;
-}
+    eliminarEd.addEventListener('click', () => {
+      if (editingIndex === null) return;
+      if (!confirm('¿Eliminar este cumpleaños?')) return;
+      items.splice(editingIndex, 1);
+      save();
+      editingIndex = null;
+      editModal.classList.add('hidden');
+      editModal.style.display = 'none';
+      render();
+    });
 
-function openEdit(index){
-  editingIndex=index;
-  const it=items[index];
-  editFecha.value=it.date;
-  editMotivo.value=it.motive;
-  editModal.classList.remove('hidden'); editModal.style.display='flex';
-}
+    function toggleFullscreen(cardEl) {
+      const isFull = cardEl.classList.contains('fullscreen-modal');
+      if (isFull) {
+        cardEl.classList.remove('fullscreen-modal');
+        const overlay = document.querySelector('.fullscreen-overlay');
+        if (overlay) overlay.remove();
+        document.querySelector('#cardsContainer').appendChild(cardEl);
+      } else {
+        cardEl.classList.add('fullscreen-modal');
+        const overlay = document.createElement('div');
+        overlay.className = 'fullscreen-overlay';
+        overlay.addEventListener('click', () => toggleFullscreen(cardEl));
+        document.body.appendChild(overlay);
+        document.body.appendChild(cardEl);
+      }
+    }
 
-guardarEd.addEventListener('click',()=>{
-  if(editingIndex===null) return;
-  const it=items[editingIndex];
-  it.date=editFecha.value;
-  it.motive=editMotivo.value.trim();
-  save();
-  editModal.classList.add('hidden'); editModal.style.display='none';
-  editingIndex=null;
-  render();
-});
-cancelarEd.addEventListener('click',()=>{ editingIndex=null; editModal.classList.add('hidden'); editModal.style.display='none'; });
-eliminarEd.addEventListener('click',()=>{
-  if(editingIndex===null) return;
-  if(!confirm('¿Eliminar este cumpleaños?')) return;
-  items.splice(editingIndex,1); save();
-  editingIndex=null; editModal.classList.add('hidden'); editModal.style.display='none';
-  render();
-});
+    fixedToggleBtn.addEventListener('click', () => {
+      const form = document.querySelector('.max-w-md');
+      const visible = form.style.display !== 'none';
+      form.style.display = visible ? 'none' : 'flex';
+      fixedToggleBtn.textContent = visible ? 'Mostrar' : 'Ocultar';
+    });
 
-function toggleFullscreen(cardEl){
-  const isFull=cardEl.classList.contains('fullscreen-modal');
-  if(isFull){
-    cardEl.classList.remove('fullscreen-modal');
-    const overlay=document.querySelector('.fullscreen-overlay');
-    if(overlay) overlay.remove();
-    document.querySelector('#cardsContainer').appendChild(cardEl);
-  } else {
-    cardEl.classList.add('fullscreen-modal');
-    const overlay=document.createElement('div');
-    overlay.className='fullscreen-overlay';
-    overlay.addEventListener('click',()=>toggleFullscreen(cardEl));
-    document.body.appendChild(overlay);
-    document.body.appendChild(cardEl);
-  }
-}
+    agregarBtn.addEventListener('click', () => {
+      const dateVal = fechaInput.value;
+      const motVal = motivoInput.value.trim();
+      if (!dateVal || !motVal) return alert('Completa fecha y nombre');
+      items.push({ id: uid(), date: dateVal, motive: motVal });
+      save();
+      fechaInput.value = '';
+      motivoInput.value = '';
+      render();
+    });
 
-fixedToggleBtn.addEventListener('click',()=>{ 
-  const form=document.querySelector('.max-w-md'); 
-  const visible=form.style.display!=='none';
-  form.style.display=visible?'none':'flex';
-  fixedToggleBtn.textContent=visible?'Mostrar':'Ocultar';
-});
+    borrarTodoBtn.addEventListener('click', () => {
+      if (!confirm('Borrar todos los cumpleaños?')) return;
+      items = [];
+      save();
+      render();
+    });
 
-agregarBtn.addEventListener('click',()=>{
-  const dateVal=fechaInput.value; const motVal=motivoInput.value.trim();
-  if(!dateVal||!motVal) return alert('Completa fecha y nombre');
-  items.push({id:uid(),date:dateVal,motive:motVal});
-  save(); fechaInput.value=''; motivoInput.value='';
-  render();
-});
+    exportJsonBtn.addEventListener('click', () => {
+      const dataStr = JSON.stringify(items, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
 
-borrarTodoBtn.addEventListener('click',()=>{ if(!confirm('Borrar todos los cumpleaños?')) return; items=[]; save(); render(); });
-
-exportJsonBtn.addEventListener('click', () => {
-  const dataStr = JSON.stringify(items, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
-
-  // Opción moderna con showSaveFilePicker (Chrome, Edge, Opera ≥86, Safari ≥17.2 parcial)
-  if ('showSaveFilePicker' in window) {
-    try {
-      window.showSaveFilePicker({
-        suggestedName: `Natalis_respaldo_${new Date().toISOString().split('T')[0]}.json`,
-        types: [{
-          description: 'Archivo JSON',
-          accept: { 'application/json': ['.json'] },
-        }],
-      })
-      .then(handle => handle.createWritable())
-      .then(writable => {
-        return writable.write(blob)
-          .then(() => writable.close());
-      })
-      .catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error(err);
+      if ('showSaveFilePicker' in window) {
+        try {
+          window.showSaveFilePicker({
+              suggestedName: `Natalis_respaldo_${new Date().toISOString().split('T')[0]}.json`,
+              types: [{ description: 'Archivo JSON', accept: { 'application/json': ['.json'] } }],
+            })
+            .then(handle => handle.createWritable())
+            .then(writable => {
+              return writable.write(blob)
+                .then(() => writable.close());
+            })
+            .catch(err => {
+              if (err.name !== 'AbortError') {
+                console.error(err);
+                fallbackDownload(blob);
+              }
+            });
+        } catch (err) {
+          console.warn('showSaveFilePicker falló, usando método clásico', err);
           fallbackDownload(blob);
         }
+      } else {
+        fallbackDownload(blob);
+      }
+
+      function fallbackDownload(blob) {
+        const link = document.createElement('a');
+        const fecha = new Date().toISOString().split('T')[0];
+        link.download = `Natalis_respaldo_${fecha}.json`;
+        link.href = URL.createObjectURL(blob);
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(link.href), 4000);
+      }
+    });
+
+    importJsonBtn.addEventListener('click', () => {
+      const inp = document.createElement('input');
+      inp.type = 'file';
+      inp.accept = '.json';
+      inp.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const arr = JSON.parse(reader.result);
+            if (Array.isArray(arr)) {
+              items = arr.map(it => it);
+              save();
+              render();
+            } else alert('JSON inválido');
+          } catch (err) { alert('Error leyendo JSON'); }
+        };
+        reader.readAsText(file);
+      };
+      inp.click();
+    });
+
+    const whatsappBtn = document.getElementById('whatsappBtn');
+    whatsappBtn.addEventListener('click', () => {
+      if (items.length === 0) {
+        alert('No hay cumpleaños registrados para enviar.');
+        return;
+      }
+
+      let mensaje = '🎉 *Próximos Cumpleaños — Natalis* 🎂%0A%0A';
+      const now = new Date();
+
+      items.forEach((it, i) => {
+        const [y, m, d] = it.date.split('-').map(Number);
+        const target = new Date(now.getFullYear(), m - 1, d, 0, 0, 0);
+        if (target < now) target.setFullYear(now.getFullYear() + 1);
+
+        const diff = target - now;
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+        const [year, month, day] = it.date.split('-');
+        const fechaTexto = `${day}/${month}/${year}`;
+        const restante =
+          days > 0 ?
+          `${days}d ${hrs}h ${mins}min` :
+          hrs > 0 ?
+          `${hrs}h ${mins}min` :
+          `${mins}min`;
+
+        mensaje += `${i + 1}. *${it.motive}* — ${fechaTexto}  _(faltan ${restante})_%0A`;
       });
-    } catch (err) {
-      console.warn('showSaveFilePicker falló, usando método clásico', err);
-      fallbackDownload(blob);
+
+      mensaje += '%0A✨ Enviado desde Natalis';
+      const url = `https://wa.me/?text=${mensaje}`;
+      window.open(url, '_blank');
+    });
+
+    render();
+
+    function svgMax() {
+      return `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zm0 10h6v6h-6v-6zm-10 0h6v6H4v-6z"/></svg>`;
     }
-  } else {
-    // Método clásico (funciona en todos los navegadores)
-    fallbackDownload(blob);
-  }
 
-  function fallbackDownload(blob) {
-    const link = document.createElement('a');
-    const fecha = new Date().toISOString().split('T')[0];
-    link.download = `Natalis_respaldo_${fecha}.json`;
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    // Opcional: limpiar después de un tiempo
-    setTimeout(() => URL.revokeObjectURL(link.href), 4000);
-  }
-});
+    // =========================================================
+    //  FULLSCREEN REAL (aislado)
+    // =========================================================
+    (function initFullscreenToggle() {
+      const btn = document.getElementById('fullscreenBtn');
+      if (!btn) return;
 
-importJsonBtn.addEventListener('click',()=>{
-  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
-  inp.onchange=e=>{
-    const file=e.target.files[0];
-    if(!file) return;
-    const reader=new FileReader();
-    reader.onload=()=>{
-      try{
-        const arr=JSON.parse(reader.result);
-        if(Array.isArray(arr)){
-          items=arr.map(it=>it);
-          save(); render();
-        } else alert('JSON inválido');
-      } catch(err){ alert('Error leyendo JSON'); }
-    };
-    reader.readAsText(file);
-  };
-  inp.click();
-});
+      const iconEnter = '⛶';
+      const iconExit = '🗗';
 
-// Enviar información por WhatsApp con días restantes
-const whatsappBtn = document.getElementById('whatsappBtn');
-whatsappBtn.addEventListener('click', () => {
-  if (items.length === 0) {
-    alert('No hay cumpleaños registrados para enviar.');
-    return;
-  }
+      function isFullscreen() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+      }
 
-  let mensaje = '🎉 *Próximos Cumpleaños — Natalis* 🎂%0A%0A';
-  const now = new Date();
+      async function enterFullscreen() {
+        const el = document.documentElement;
+        if (el.requestFullscreen) return el.requestFullscreen();
+        if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+      }
 
-  items.forEach((it, i) => {
-    const [y, m, d] = it.date.split('-').map(Number);
-    const target = new Date(now.getFullYear(), m - 1, d, 0, 0, 0);
-    if (target < now) target.setFullYear(now.getFullYear() + 1);
+      async function exitFullscreen() {
+        if (document.exitFullscreen) return document.exitFullscreen();
+        if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+      }
 
-    const diff = target - now;
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hrs = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      function updateButton() {
+        if (isFullscreen()) {
+          btn.textContent = `${iconExit} Salir`;
+          btn.title = 'Salir de pantalla completa';
+        } else {
+          btn.textContent = `${iconEnter} Pantalla completa`;
+          btn.title = 'Pantalla completa';
+        }
+      }
 
-    const [year, month, day] = it.date.split('-');
-    const fechaTexto = `${day}/${month}/${year}`;
-    const restante =
-      days > 0
-        ? `${days}d ${hrs}h ${mins}min`
-        : hrs > 0
-        ? `${hrs}h ${mins}min`
-        : `${mins}min`;
+      btn.addEventListener('click', async () => {
+        try {
+          if (isFullscreen()) await exitFullscreen();
+          else await enterFullscreen();
+          updateButton();
+        } catch (e) {
+          console.error('Fullscreen error:', e);
+          alert('El navegador bloqueó pantalla completa (puede pasar en iOS Safari).');
+        }
+      });
 
-    mensaje += `${i + 1}. *${it.motive}* — ${fechaTexto}  _(faltan ${restante})_%0A`;
-  });
+      document.addEventListener('fullscreenchange', updateButton);
+      document.addEventListener('webkitfullscreenchange', updateButton);
 
-  mensaje += '%0A✨ Enviado desde Natalis';
-  const url = `https://wa.me/?text=${mensaje}`;
-  window.open(url, '_blank');
-});
-
-render();
-
-function svgMax(){
-  return '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4h6v6H4V4zm10 0h6v6h-6V4zm0 10h6v6h-6v-6zm-10 0h6v6H4v-6z"/></svg>';
-}
-
-/* =========================================================
-   FULLSCREEN (Pantalla completa real) - aislado, sin romper nada
-   ========================================================= */
-(function initFullscreenToggle() {
-  const btn = document.getElementById('fullscreenBtn');
-  if (!btn) return;
-
-  const iconEnter = '⛶';
-  const iconExit = '🗗';
-
-  function isFullscreen() {
-    return !!(document.fullscreenElement || document.webkitFullscreenElement);
-  }
-
-  async function enterFullscreen() {
-    const el = document.documentElement;
-    if (el.requestFullscreen) return el.requestFullscreen();
-    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-  }
-
-  async function exitFullscreen() {
-    if (document.exitFullscreen) return document.exitFullscreen();
-    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
-  }
-
-  function updateButton() {
-    if (isFullscreen()) {
-      btn.textContent = `${iconExit} Salir`;
-      btn.title = 'Salir de pantalla completa';
-    } else {
-      btn.textContent = `${iconEnter} Pantalla completa`;
-      btn.title = 'Pantalla completa';
-    }
-  }
-
-  btn.addEventListener('click', async () => {
-    try {
-      if (isFullscreen()) await exitFullscreen();
-      else await enterFullscreen();
       updateButton();
-    } catch (e) {
-      console.error('Fullscreen error:', e);
-      alert('El navegador bloqueó pantalla completa (puede pasar en iOS Safari).');
-    }
-  });
-
-  document.addEventListener('fullscreenchange', updateButton);
-  document.addEventListener('webkitfullscreenchange', updateButton);
-
-  updateButton();
-})();
-</script>
-
-<div style="text-align:center; font-size:0.85rem; color:#555; position:fixed; bottom:10px; width:100%;">
-    <div style="display: flex; align-items: center; justify-content: left; gap: 12px; flex-wrap: wrap;">
-        <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/LogoCI-G.png" 
-             alt="Control Interno" 
-             style="height: 22px; width: auto; object-fit: contain; opacity: 0.5;">
-        <div style="width: 1px; height: 24px; background-color: #cbd5e1;"></div>
-        <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: center;">
-            <span style="font-size: 0.5rem; color: #0A2540;">Control Interno</span>
-            <span style="font-size: 0.4rem; color: #94a3b8; font-weight: 500;">Ingeniería de Control</span>
-        </div>
-        <div style="width: 1px; height: 24px; background-color: #cbd5e1;"></div>
-        <div style="display: flex; flex-direction: column; line-height: 1.2; text-align: center;">
-            <span style="font-size: 0.5rem; color: #0A2540;">Visum</span>
-            <span style="font-size: 0.4rem; color: #94a3b8; font-weight: 500;">V1.0 | Mayo 2026</span>
-        </div>
-    </div>
-</div>
+    })();
+  </script>
 
 </body>
+
 </html>
