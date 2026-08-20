@@ -287,62 +287,57 @@ agregarBtn.addEventListener('click',()=>{
 borrarTodoBtn.addEventListener('click',()=>{ if(!confirm('Borrar todos los cumpleaños?')) return; items=[]; save(); render(); });
 
 // ============================================================
-// ✅ EXPORTAR JSON — Versión mejorada para móviles y escritorio
+// ✅ EXPORTAR JSON — VERSIÓN ROBUSTA PARA MÓVILES Y ESCRITORIO
 // ============================================================
-exportJsonBtn.addEventListener('click', async () => {
+exportJsonBtn.addEventListener('click', () => {
+  // 1. Preparar el archivo
   const dataStr = JSON.stringify(items, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
   const fecha = new Date().toISOString().split('T')[0];
   const fileName = `Natalis_respaldo_${fecha}.json`;
-  const file = new File([blob], fileName, { type: 'application/json' });
-
-  // 1. Escritorio → diálogo real "Guardar como..."
-  if ('showSaveFilePicker' in window) {
-    try {
-      const handle = await window.showSaveFilePicker({
-        suggestedName: fileName,
-        types: [{
-          description: 'Archivo JSON',
-          accept: { 'application/json': ['.json'] }
-        }]
-      });
-      const writable = await handle.createWritable();
-      await writable.write(blob);
-      await writable.close();
-      return;
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.warn('showSaveFilePicker falló:', err);
-    }
-  }
-
-  // 2. Móvil → Share sheet (permite elegir dónde guardar)
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({
-        files: [file],
-        title: 'Respaldo Natalis',
-        text: 'Copia de seguridad de cumpleaños'
-      });
-      return;
-    } catch (err) {
-      if (err.name === 'AbortError') return;
-      console.warn('Share falló:', err);
-    }
-  }
-
-  // 3. Fallback universal (inserta el enlace en el DOM para que funcione en móviles)
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  a.style.display = 'none';
-  document.body.appendChild(a);   // ← clave para móviles
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
+
+  // 2. Intentar la descarga con <a download> insertado en el DOM
+  try {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);   // ← Clave para móviles
+    link.click();
+    // Pequeño retraso para que Safari procese
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 150);
+    console.log('Descarga iniciada con <a>');
+  } catch (e) {
+    console.warn('Falló el método <a>, usando ventana nueva', e);
+    // 3. Fallback: abrir en nueva pestaña (el usuario puede guardar manualmente)
+    window.open(url, '_blank');
+    // Liberar URL después de un tiempo
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  // 4. Opción adicional (descomentar si se necesita): mostrar JSON en un textarea
+  // para copiar manualmente en caso de que todo falle.
+  /*
+  if (confirm('¿Quieres ver el contenido JSON para copiarlo manualmente?')) {
+    const textarea = document.createElement('textarea');
+    textarea.value = dataStr;
+    textarea.style.position = 'fixed';
+    textarea.style.top = '10%';
+    textarea.style.left = '10%';
+    textarea.style.width = '80%';
+    textarea.style.height = '60%';
+    textarea.style.zIndex = '9999';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy'); // intenta copiar
+    alert('Texto copiado al portapapeles (si el navegador lo permite). Pega donde quieras.');
+    textarea.remove();
+  }
+  */
 });
 
 importJsonBtn.addEventListener('click',()=>{
