@@ -252,17 +252,35 @@
       background: rgba(239, 68, 68, 0.70) !important;
     }
 
-    /* ===== BOTONES FIJOS ===== */
+    /* ===== BOTONES FIJOS - MEJORADO PARA MÓVIL ===== */
     #fixedButtonsContainer {
       position: fixed;
-      right: 24px;
+      right: 16px;
       bottom: 90px;
       display: flex;
-      flex-direction: row;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
       z-index: 150;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      max-width: 200px;
+      width: auto;
+    }
+
+    /* En pantallas pequeñas, los botones ocupan todo el ancho disponible */
+    @media (max-width: 640px) {
+      #fixedButtonsContainer {
+        right: 10px;
+        bottom: 80px;
+        max-width: 180px;
+        width: auto;
+      }
+      
+      .fixed-btn {
+        width: 100%;
+        font-size: 0.7rem;
+        padding: 6px 12px;
+        text-align: center;
+        white-space: nowrap;
+      }
     }
 
     .fixed-btn {
@@ -272,13 +290,15 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
       padding: 8px 14px;
-      border-radius: 14px;
+      border-radius: 12px;
       font-weight: 600;
       font-size: 0.8rem;
       cursor: pointer;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
       transition: all 0.2s;
       white-space: nowrap;
+      min-width: 120px;
+      text-align: center;
     }
 
     .fixed-btn:hover {
@@ -294,8 +314,16 @@
       background: rgba(34, 197, 94, 0.65) !important;
     }
 
+    .fixed-btn.bg-blue-500 {
+      background: rgba(59, 130, 246, 0.45) !important;
+    }
+
+    .fixed-btn.bg-blue-500:hover {
+      background: rgba(59, 130, 246, 0.65) !important;
+    }
+
     .fixed-btn.hidden-btn {
-      display: none;
+      display: none !important;
     }
 
     /* ===== MODAL DE EDICIÓN ===== */
@@ -468,14 +496,13 @@
     </div>
   </div>
 
-  <!-- Botones fijos -->
+  <!-- Botones fijos - MEJORADO PARA MÓVIL -->
   <div id="fixedButtonsContainer">
     <button id="fullscreenBtn" class="fixed-btn" title="Pantalla completa">Pantalla completa</button>
     <button id="importJson" class="fixed-btn">Importar JSON</button>
     <button id="exportJson" class="fixed-btn">Exportar JSON</button>
     <button id="fixedToggleForm" class="fixed-btn">Ocultar</button>
     <button id="whatsappBtn" class="fixed-btn bg-green-500 hover:bg-green-600">Enviar WhatsApp</button>
-    <!-- NUEVO BOTÓN PARA CONTRAER/EXPANDIR -->
     <button id="toggleAllButtons" class="fixed-btn bg-blue-500 hover:bg-blue-600">Contraer</button>
   </div>
 
@@ -775,7 +802,7 @@
     });
 
     // =========================================================
-    //  NUEVO: CONTRAER / EXPANDIR TODOS LOS BOTONES
+    //  CONTRAER / EXPANDIR TODOS LOS BOTONES
     // =========================================================
     const toggleAllBtn = document.getElementById('toggleAllButtons');
     let buttonsCollapsed = false;
@@ -783,9 +810,8 @@
     toggleAllBtn.addEventListener('click', () => {
       buttonsCollapsed = !buttonsCollapsed;
       const allButtons = document.querySelectorAll('#fixedButtonsContainer .fixed-btn');
-      
+
       allButtons.forEach(btn => {
-        // El botón de toggle no se oculta a sí mismo
         if (btn.id !== 'toggleAllButtons') {
           if (buttonsCollapsed) {
             btn.classList.add('hidden-btn');
