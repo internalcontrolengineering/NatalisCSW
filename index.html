@@ -58,7 +58,7 @@
       max-width: 1600px;
       margin: auto;
       grid-template-columns: repeat(1, minmax(0, 1fr));
-      padding: 0 10px;
+      padding: 0 10px 120px 10px;
     }
 
     @media (min-width: 640px) {
@@ -83,7 +83,6 @@
       width: 100%;
       min-height: 140px;
       border-radius: 20px;
-      /* Fondo base transparente + efecto vidrio */
       background: rgba(255, 255, 255, 0.05);
       backdrop-filter: blur(12px) saturate(180%);
       -webkit-backdrop-filter: blur(12px) saturate(180%);
@@ -96,7 +95,6 @@
       overflow: hidden;
     }
 
-    /* Reflejo superior (brillo de vidrio) */
     .card::before {
       content: '';
       position: absolute;
@@ -114,7 +112,6 @@
       box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.3);
     }
 
-    /* Tarjeta en fullscreen */
     .card.fullscreen-modal {
       position: fixed;
       top: 50%;
@@ -153,7 +150,6 @@
       text-align: center;
     }
 
-    /* Textos dentro de la tarjeta */
     .card .motivo {
       font-weight: 600;
       color: rgba(255, 255, 255, 0.95);
@@ -257,19 +253,32 @@
     }
 
     /* ===== BOTONES FIJOS ===== */
+    #fixedButtonsContainer {
+      position: fixed;
+      right: 24px;
+      bottom: 90px;
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      z-index: 150;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .fixed-btn {
       background: rgba(255, 255, 255, 0.08) !important;
       backdrop-filter: blur(12px) saturate(180%);
       -webkit-backdrop-filter: blur(12px) saturate(180%);
       border: 1px solid rgba(255, 255, 255, 0.1);
       color: #fff;
-      padding: 6px 10px;
-      border-radius: 12px;
+      padding: 8px 14px;
+      border-radius: 14px;
       font-weight: 600;
       font-size: 0.8rem;
       cursor: pointer;
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .fixed-btn:hover {
@@ -283,6 +292,10 @@
 
     .fixed-btn.bg-green-500:hover {
       background: rgba(34, 197, 94, 0.65) !important;
+    }
+
+    .fixed-btn.hidden-btn {
+      display: none;
     }
 
     /* ===== MODAL DE EDICIÓN ===== */
@@ -389,11 +402,6 @@
       font-weight: 500;
     }
 
-    /* Ajuste para que los botones fijos no se superpongan con el footer */
-    #fixedButtonsContainer {
-      bottom: 80px;
-    }
-
     /* ===== TÍTULO ===== */
     h1.text-3xl {
       color: #fff;
@@ -467,9 +475,11 @@
     <button id="exportJson" class="fixed-btn">Exportar JSON</button>
     <button id="fixedToggleForm" class="fixed-btn">Ocultar</button>
     <button id="whatsappBtn" class="fixed-btn bg-green-500 hover:bg-green-600">Enviar WhatsApp</button>
+    <!-- NUEVO BOTÓN PARA CONTRAER/EXPANDIR -->
+    <button id="toggleAllButtons" class="fixed-btn bg-blue-500 hover:bg-blue-600">Contraer</button>
   </div>
 
-  <!-- Footer rediseñado -->
+  <!-- Footer -->
   <div id="footer">
     <img src="https://raw.githubusercontent.com/internalcontrolengineering/Desarrollos/main/LogoCI-G.png"
     alt="Control Interno">
@@ -487,7 +497,7 @@
 
   <script>
     // =========================================================
-    //  LÓGICA PRINCIPAL (sin cambios funcionales, solo estética)
+    //  LÓGICA PRINCIPAL
     // =========================================================
 
     let items = JSON.parse(localStorage.getItem('natalis_items') || '[]');
@@ -509,14 +519,13 @@
     let intervals = {};
     let editingIndex = null;
 
-    // PALETA de colores pastel con transparencia (para vidrio coloreado)
     const palette = [
-      'rgba(236, 72, 153, 0.25)', // rosa
-      'rgba(16, 185, 129, 0.25)', // verde
-      'rgba(59, 130, 246, 0.25)', // azul
-      'rgba(245, 158, 11, 0.25)', // naranja
-      'rgba(139, 92, 246, 0.25)', // morado
-      'rgba(239, 68, 68, 0.25)' // rojo
+      'rgba(236, 72, 153, 0.25)',
+      'rgba(16, 185, 129, 0.25)',
+      'rgba(59, 130, 246, 0.25)',
+      'rgba(245, 158, 11, 0.25)',
+      'rgba(139, 92, 246, 0.25)',
+      'rgba(239, 68, 68, 0.25)'
     ];
 
     function save() { localStorage.setItem('natalis_items', JSON.stringify(items)); }
@@ -532,7 +541,6 @@
       items.forEach((it, index) => {
         const card = document.createElement('div');
         card.className = 'card';
-        // Asignamos color de fondo con transparencia (efecto vidrio)
         card.style.backgroundColor = palette[index % palette.length];
         card.dataset.index = index;
         card.dataset.id = it.id;
@@ -766,6 +774,30 @@
       window.open(url, '_blank');
     });
 
+    // =========================================================
+    //  NUEVO: CONTRAER / EXPANDIR TODOS LOS BOTONES
+    // =========================================================
+    const toggleAllBtn = document.getElementById('toggleAllButtons');
+    let buttonsCollapsed = false;
+
+    toggleAllBtn.addEventListener('click', () => {
+      buttonsCollapsed = !buttonsCollapsed;
+      const allButtons = document.querySelectorAll('#fixedButtonsContainer .fixed-btn');
+      
+      allButtons.forEach(btn => {
+        // El botón de toggle no se oculta a sí mismo
+        if (btn.id !== 'toggleAllButtons') {
+          if (buttonsCollapsed) {
+            btn.classList.add('hidden-btn');
+          } else {
+            btn.classList.remove('hidden-btn');
+          }
+        }
+      });
+
+      toggleAllBtn.textContent = buttonsCollapsed ? 'Expandir' : 'Contraer';
+    });
+
     render();
 
     function svgMax() {
@@ -773,7 +805,7 @@
     }
 
     // =========================================================
-    //  FULLSCREEN REAL (aislado)
+    //  FULLSCREEN REAL
     // =========================================================
     (function initFullscreenToggle() {
       const btn = document.getElementById('fullscreenBtn');
