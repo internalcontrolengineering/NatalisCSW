@@ -286,99 +286,82 @@ agregarBtn.addEventListener('click',()=>{
 
 borrarTodoBtn.addEventListener('click',()=>{ if(!confirm('Borrar todos los cumpleaños?')) return; items=[]; save(); render(); });
 
-// ====================================================================
-//  EXPORTAR JSON - Mejorado para móviles
-// ====================================================================
-exportJsonBtn.addEventListener('click', () => {
+// ============================================================
+// ✅ EXPORTAR JSON — Versión mejorada para móviles y escritorio
+// ============================================================
+exportJsonBtn.addEventListener('click', async () => {
   const dataStr = JSON.stringify(items, null, 2);
   const blob = new Blob([dataStr], { type: 'application/json' });
+  const fecha = new Date().toISOString().split('T')[0];
+  const fileName = `Natalis_respaldo_${fecha}.json`;
+  const file = new File([blob], fileName, { type: 'application/json' });
 
-  // Opción moderna con showSaveFilePicker (Chrome, Edge, Opera ≥86, Safari ≥17.2 parcial)
+  // 1. Escritorio → diálogo real "Guardar como..."
   if ('showSaveFilePicker' in window) {
     try {
-      window.showSaveFilePicker({
-        suggestedName: `Natalis_respaldo_${new Date().toISOString().split('T')[0]}.json`,
+      const handle = await window.showSaveFilePicker({
+        suggestedName: fileName,
         types: [{
           description: 'Archivo JSON',
-          accept: { 'application/json': ['.json'] },
-        }],
-      })
-      .then(handle => handle.createWritable())
-      .then(writable => {
-        return writable.write(blob)
-          .then(() => writable.close());
-      })
-      .catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error(err);
-          fallbackDownload(blob);
-        }
+          accept: { 'application/json': ['.json'] }
+        }]
       });
+      const writable = await handle.createWritable();
+      await writable.write(blob);
+      await writable.close();
+      return;
     } catch (err) {
-      console.warn('showSaveFilePicker falló, usando método clásico', err);
-      fallbackDownload(blob);
+      if (err.name === 'AbortError') return;
+      console.warn('showSaveFilePicker falló:', err);
     }
-  } else {
-    // Método clásico (funciona en todos los navegadores)
-    fallbackDownload(blob);
   }
 
-  function fallbackDownload(blob) {
-    const link = document.createElement('a');
-    const fecha = new Date().toISOString().split('T')[0];
-    link.download = `Natalis_respaldo_${fecha}.json`;
-    link.href = URL.createObjectURL(blob);
-    link.style.display = 'none';
-    document.body.appendChild(link);   // 🔹 Añadimos al DOM para que funcione en móviles
-    link.click();
-
-    // Limpieza después de la descarga
-    setTimeout(() => {
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    }, 4000);
+  // 2. Móvil → Share sheet (permite elegir dónde guardar)
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        files: [file],
+        title: 'Respaldo Natalis',
+        text: 'Copia de seguridad de cumpleaños'
+      });
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;
+      console.warn('Share falló:', err);
+    }
   }
+
+  // 3. Fallback universal (inserta el enlace en el DOM para que funcione en móviles)
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);   // ← clave para móviles
+  a.click();
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 });
 
-// ====================================================================
-//  IMPORTAR JSON - Mejorado para móviles
-// ====================================================================
-importJsonBtn.addEventListener('click', () => {
-  const inp = document.createElement('input');
-  inp.type = 'file';
-  inp.accept = '.json';
-  inp.style.display = 'none';
-  document.body.appendChild(inp);   // 🔹 Añadimos al DOM
-
-  inp.onchange = function (e) {
-    const file = e.target.files[0];
-    if (!file) {
-      document.body.removeChild(inp);
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const arr = JSON.parse(reader.result);
-        if (Array.isArray(arr)) {
-          items = arr.map(it => it);
-          save();
-          render();
-        } else {
-          alert('JSON inválido');
-        }
-      } catch (err) {
-        alert('Error leyendo el JSON');
-      }
-      document.body.removeChild(inp);
-    };
-    reader.onerror = () => {
-      alert('Error al leer el archivo');
-      document.body.removeChild(inp);
+importJsonBtn.addEventListener('click',()=>{
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.json';
+  inp.onchange=e=>{
+    const file=e.target.files[0];
+    if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const arr=JSON.parse(reader.result);
+        if(Array.isArray(arr)){
+          items=arr.map(it=>it);
+          save(); render();
+        } else alert('JSON inválido');
+      } catch(err){ alert('Error leyendo JSON'); }
     };
     reader.readAsText(file);
   };
-
   inp.click();
 });
 
